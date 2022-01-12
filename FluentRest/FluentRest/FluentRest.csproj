@@ -21,7 +21,46 @@
   </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\SourceGenerator\SourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+        <ProjectReference Include="..\SourceGenerator\SourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false">
+            <PrivateAssets>all</PrivateAssets>
+        </ProjectReference>
     </ItemGroup>
 
+    <!--  nuget configurable properties -->
+    <PropertyGroup>
+        <Version>0.0.0-pre1</Version>
+        <VersionSuffix></VersionSuffix>
+        <DefineConstants>$(DefineConstants);</DefineConstants>
+    </PropertyGroup>
+
+    <!--  nuget properties -->
+    <PropertyGroup>
+        <PackageId>Softlion.FluentRest</PackageId>
+        <!--    <PackageIconUrl>https://github.com/softlion/XamarinFormsGesture/favicon.ico</PackageIconUrl>-->
+        <Summary>A small, simple and powerful .net6, maui compatible, and System.Text.Json only HTTP client library. Also compatible with xamarin and .net core</Summary>
+        <PackageTags>http rest json netstandard</PackageTags>
+        <Title>A small, simple and powerful System.Text.Json only HTTP client library</Title>
+        <Description>
+            A small, simple and powerful .net6, maui compatible, and System.Text.Json only HTTP client library.
+
+            Also compatible with xamarin and .net core.
+        </Description>
+        <PackageLicenseUrl>https://github.com/softlion/FluentRest</PackageLicenseUrl>
+        <PackageVersion>$(Version)$(VersionSuffix)</PackageVersion>
+        <Product>FluentRest</Product>
+        <Company>Softlion</Company>
+        <Authors>Softlion</Authors>
+        <Owners>Softlion</Owners>
+        <NeutralLanguage>en</NeutralLanguage>
+        <Copyright>© 2022 Softlion</Copyright>
+        <RepositoryUrl>https://github.com/softlion/FluentRest</RepositoryUrl>
+        <UseFullSemVerForNuGet>false</UseFullSemVerForNuGet>
+        <!--    <PackageLicenseFile>LICENSE</PackageLicenseFile>-->
+        <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+        <PackageProjectUrl>https://github.com/softlion/FluentRest</PackageProjectUrl>
+        <PackageReleaseNotes>
+            1.0.0: initial release
+        </PackageReleaseNotes>
+    </PropertyGroup>
+    
 </Project>
