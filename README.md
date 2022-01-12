@@ -1,5 +1,9 @@
 # RestCall
 
+
+[![NuGet](https://img.shields.io/nuget/dt/Vapolia.UserInteraction?label=Get%20It%20On%20Nuget&style=for-the-badge)](https://www.nuget.org/packages/Softlion.FluentRest/)  
+
+
 A small, simple and powerful .net6, maui compatible, and System.Text.Json only HTTP client library (also compatible with xamarin and .net core).  
 Based on the amazing work from Todd Menier.  
 It quickly replaces heavy/old libs like RestSharp.
