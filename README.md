@@ -66,7 +66,7 @@ if (!response.Headers.TryGetFirst("Authorization", out var authorization)
 var sessionToken = authorization.Split(" ")[1];
 ```
 
-### Add data in the header of each requets globally
+### Add data in the header of each request globally
 ```c#
 FluentRestHttp.Configure(settings =>
 {
