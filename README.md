@@ -26,6 +26,19 @@ Common code:
 private const string Endpoint = "https://my.api.com/";
 ```
 
+### Use case insensitive JSON mapping globally
+
+```c#
+FluentRestHttp.Configure(settings =>
+{
+    settings.JsonSerializer = new SystemTextJsonSerializer(new JsonSerializerOptions
+    {
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault,
+        PropertyNameCaseInsensitive = true
+    });
+});
+```
+
 ### Post to an API and get the json result
 
 ```C#
