@@ -15,6 +15,6 @@ namespace FluentRest.Http.Configuration
 
 		public string Serialize(object obj) => JsonSerializer.Serialize(obj, options);
 		public T? Deserialize<T>(string s) => JsonSerializer.Deserialize<T>(s, options);
-		public T? Deserialize<T>(Stream stream) => JsonSerializer.Deserialize<T>(stream);
+		public T? Deserialize<T>(Stream stream) => JsonSerializer.Deserialize<T>(stream, options);
 	}
 }

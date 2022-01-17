@@ -1,9 +1,12 @@
 ﻿using System.IO;
 using System.Net.Http;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using FluentRest.Http;
+using FluentRest.Http.Configuration;
 using FluentRest.Urls;
 
 namespace FluentRest.Test.Http
@@ -227,6 +230,31 @@ namespace FluentRest.Test.Http
 			Assert.AreEqual(123, logMe.id);
 			Assert.IsNull(logMe.name);
 		}
+		
+		[TestMethod]
+		public async Task can_deserialize_with_correct_settings()
+		{
+			FluentRestHttp.Configure(settings =>
+			{
+				settings.JsonSerializer = new SystemTextJsonSerializer(new JsonSerializerOptions
+				{
+					DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault,
+					PropertyNameCaseInsensitive = true
+				});
+			});
+
+			HttpTest.RespondWithJson(new TestData2 { id = 123, somethingElse = "bar" });
+			TestData3 logMe = null;
+			var result = await new FluentRestRequest("http://api.com")
+				.AfterCall(async call => logMe = await call.Response.GetJsonAsync<TestData3>())
+				.GetJsonAsync<TestData3>();
+
+			Assert.IsNotNull(result);
+			Assert.AreEqual(123, result.Id);
+			Assert.IsNotNull(logMe);
+			Assert.AreEqual(123, logMe.Id);
+			Assert.IsNull(logMe.Name);
+		}
 
 		private class TestData
 		{
@@ -239,6 +267,13 @@ namespace FluentRest.Test.Http
 			public int id { get; set; }
 			public string somethingElse { get; set; }
 		}
+		
+		private class TestData3
+		{
+			public int Id { get; set; }
+			public string Name { get; set; }
+		}
+
 
 		private class TestError
 		{

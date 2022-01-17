@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using FluentRest.Urls;
 
@@ -33,11 +34,19 @@ namespace FluentRest.Http.Configuration
 		/// <param name="factory">This IFluentRestClientFactory.</param>
 		/// <param name="url">the URL used to find the IFluentRestClient.</param>
 		/// <param name="configAction">the action to perform against the IFluentRestClient.</param>
-		public static IFluentRestClientFactory ConfigureClient(this IFluentRestClientFactory factory, string url, Action<IFluentRestClient> configAction) {
+		public static IFluentRestClientFactory ConfigureClient(this IFluentRestClientFactory factory, string url, Action<IFluentRestClient> configAction) 
+		{
 			var client = factory.Get(url);
 			lock (_clientLocks.GetOrCreateValue(client)) {
 				configAction(client);
 			}
+			return factory;
+		}
+
+		public static IFluentRestClientFactory ConfigureClients(this IFluentRestClientFactory factory, IEnumerable<string> urls, Action<IFluentRestClient> configAction) 
+		{
+			foreach (var url in urls)
+				ConfigureClient(factory, url, configAction);
 			return factory;
 		}
 	}
