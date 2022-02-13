@@ -1,4 +1,4 @@
-# RestCall
+# FluentRest
 
 
 [![NuGet](https://img.shields.io/nuget/dt/Softlion.FluentRest?label=Get%20It%20On%20Nuget&style=for-the-badge)](https://www.nuget.org/packages/Softlion.FluentRest/)  
