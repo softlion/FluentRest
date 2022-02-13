@@ -24,21 +24,23 @@ namespace FluentRest.Urls
 		/// <param name="obj">The object to parse into key-value pairs</param>
 		/// <returns></returns>
 		/// <exception cref="ArgumentNullException"><paramref name="obj"/> is <see langword="null" />.</exception>
-		public static IEnumerable<(string Key, object Value)> ToKeyValuePairs(this object obj) {
+		public static IEnumerable<(string Key, object? Value)> ToKeyValuePairs(this object obj) 
+		{
 			if (obj == null)
 				throw new ArgumentNullException(nameof(obj));
 
 			return
-				obj is string s ? StringToKV(s) :
-				obj is IEnumerable e ? CollectionToKV(e) :
-				ObjectToKV(obj);
+				obj is string s ? StringToKv(s) :
+				obj is IEnumerable e ? CollectionToKv(e) :
+				ObjectToKv(obj);
 		}
 
 		/// <summary>
 		/// Returns a string that represents the current object, using CultureInfo.InvariantCulture where possible.
 		/// Dates are represented in IS0 8601.
 		/// </summary>
-		public static string ToInvariantString(this object obj) {
+		public static string? ToInvariantString(this object? obj) 
+		{
 			// inspired by: http://stackoverflow.com/a/19570016/62600
 			return
 				obj == null ? null :
@@ -49,16 +51,16 @@ namespace FluentRest.Urls
 				obj.ToString();
 		}
 
-		internal static bool OrdinalEquals(this string s, string value, bool ignoreCase = false) =>
+		internal static bool OrdinalEquals(this string? s, string value, bool ignoreCase = false) =>
 			s != null && s.Equals(value, ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
 
-		internal static bool OrdinalContains(this string s, string value, bool ignoreCase = false) =>
+		internal static bool OrdinalContains(this string? s, string value, bool ignoreCase = false) =>
 			s != null && s.IndexOf(value, ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal) >= 0;
 
-		internal static bool OrdinalStartsWith(this string s, string value, bool ignoreCase = false) =>
+		internal static bool OrdinalStartsWith(this string? s, string value, bool ignoreCase = false) =>
 			s != null && s.StartsWith(value, ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
 
-		internal static bool OrdinalEndsWith(this string s, string value, bool ignoreCase = false) =>
+		internal static bool OrdinalEndsWith(this string? s, string value, bool ignoreCase = false) =>
 			s != null && s.EndsWith(value, ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
 
 		/// <summary>
@@ -72,33 +74,36 @@ namespace FluentRest.Urls
 			if (string.IsNullOrEmpty(s))
 				return new[] { s };
 
-			var i = s.IndexOf(separator);
+			var i = s.IndexOf(separator, StringComparison.InvariantCulture);
 			return (i == -1) ?
 				new[] { s } :
 				new[] { s.Substring(0, i), s.Substring(i + separator.Length) };
 		}
 
-		private static IEnumerable<(string Key, object Value)> StringToKV(string s) {
+		private static IEnumerable<(string Key, object? Value)> StringToKv(string s) 
+		{
 			if (string.IsNullOrEmpty(s))
-				return Enumerable.Empty<(string, object)>();
+				return Enumerable.Empty<(string, object?)>();
 
 			return
 				from p in s.Split('&')
 				let pair = p.SplitOnFirstOccurence("=")
 				let name = pair[0]
 				let value = (pair.Length == 1) ? null : pair[1]
-				select (name, (object)value);
+				select (name, (object?)value);
 		}
 
-		private static IEnumerable<(string Name, object Value)> ObjectToKV(object obj) =>
+		private static IEnumerable<(string Name, object? Value)> ObjectToKv(object obj) =>
 			from prop in obj.GetType().GetProperties()
 			let getter = prop.GetGetMethod(false)
 			where getter != null
 			let val = getter.Invoke(obj, null)
 			select (prop.Name, val);
 
-		private static IEnumerable<(string Key, object Value)> CollectionToKV(IEnumerable col) {
-			bool TryGetProp(object obj, string name, out object value) {
+		private static IEnumerable<(string Key, object? Value)> CollectionToKv(IEnumerable col) 
+		{
+			bool TryGetProp(object obj, string name, out object? value) 
+			{
 				var prop = obj.GetType().GetProperty(name);
 				var field = obj.GetType().GetField(name);
 
@@ -114,7 +119,8 @@ namespace FluentRest.Urls
 				return false;
 			}
 
-			bool IsTuple2(object item, out object name, out object val) {
+			bool IsTuple2(object item, out object? name, out object? val) 
+			{
 				name = null;
 				val = null;
 				return
@@ -124,7 +130,8 @@ namespace FluentRest.Urls
 					!TryGetProp(item, "Item3", out _);
 			}
 
-			bool LooksLikeKV(object item, out object name, out object val) {
+			bool LooksLikeKv(object item, out object? name, out object? val) 
+			{
 				name = null;
 				val = null;
 				return
@@ -132,13 +139,14 @@ namespace FluentRest.Urls
 					(TryGetProp(item, "Value", out val) || TryGetProp(item, "value", out val));
 			}
 
-			foreach (var item in col) {
+			foreach (var item in col) 
+			{
 				if (item == null)
 					continue;
-				if (!IsTuple2(item, out var name, out var val) && !LooksLikeKV(item, out name, out val))
-					yield return (item.ToInvariantString(), null);
+				if (!IsTuple2(item, out var name, out var val) && !LooksLikeKv(item, out name, out val))
+					yield return (item.ToInvariantString()!, null);
 				else if (name != null)
-					yield return (name.ToInvariantString(), val);
+					yield return (name.ToInvariantString()!, val);
 			}
 		}
 
@@ -159,7 +167,7 @@ namespace FluentRest.Urls
 		/// <summary>
 		/// True if the given string is a valid IPv4 address.
 		/// </summary>
-		public static bool IsIP(this string s) {
+		public static bool IsIp(this string s) {
 			// based on https://stackoverflow.com/a/29942932/62600
 			if (string.IsNullOrEmpty(s))
 				return false;

@@ -38,7 +38,7 @@ namespace FluentRest.Http
 		/// <summary>
 		/// Associate a FluentRestDetail object with this request
 		/// </summary>
-		internal static void SetFluentRestDetail(this HttpRequestMessage request, FluentRestDetail call) {
+		internal static void SetFluentRestDetail(this HttpRequestMessage? request, FluentRestDetail call) {
 			if (request?.Properties != null)
 				request.Properties["FluentRestHttpCall"] = call;
 		}
@@ -46,7 +46,7 @@ namespace FluentRest.Http
 		/// <summary>
 		/// Get the FluentRestDetail associated with this request, if any.
 		/// </summary>
-		internal static FluentRestDetail GetFluentRestDetail(this HttpRequestMessage request) {
+		internal static FluentRestDetail? GetFluentRestDetail(this HttpRequestMessage request) {
 			if (request?.Properties != null && request.Properties.TryGetValue("FluentRestHttpCall", out var obj) && obj is FluentRestDetail call)
 				return call;
 			return null;

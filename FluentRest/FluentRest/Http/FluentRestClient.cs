@@ -16,7 +16,7 @@ namespace FluentRest.Http
         private Lazy<HttpMessageHandler> _httpMessageHandler;
 
         // if an existing HttpClient is provided on construction, skip the lazy logic and just use that.
-        private readonly HttpClient _injectedClient;
+        private readonly HttpClient? _injectedClient;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="FluentRestClient"/> class.
@@ -57,7 +57,7 @@ namespace FluentRest.Http
 
         private DateTime? _clientCreatedAt;
         private HttpClient _zombieClient;
-        private readonly object _connectionLeaseLock = new object();
+        private readonly object _connectionLeaseLock = new ();
 
         private HttpClient GetHttpClient() {
             if (ConnectionLeaseExpired()) {

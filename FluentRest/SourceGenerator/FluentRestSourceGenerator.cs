@@ -20,7 +20,7 @@ namespace FluentRest.SourceGenerator
 
 		public void Execute(GeneratorExecutionContext context)
 		{
-			var (url,http) = Main();
+			var (url,http) = Main(context);
 
 			if(url != null)
 				context.AddSource($"GeneratedExtensions.Urls.g.cs", url);			
@@ -28,8 +28,13 @@ namespace FluentRest.SourceGenerator
 				context.AddSource($"GeneratedExtensions.Http.g.cs", http);
 		}
 
-		(string?,string?) Main() 
+		(string?,string?) Main(GeneratorExecutionContext context) 
 		{
+            void ShowError(string error) 
+            {
+                context.ReportDiagnostic(Diagnostic.Create(new DiagnosticDescriptor("0", "Generator error", error, "Generator", DiagnosticSeverity.Error, true), null));
+            }
+
 			var sbUrl = new StringBuilder();
 			var sbHttp = new StringBuilder();
 			
@@ -39,6 +44,7 @@ namespace FluentRest.SourceGenerator
 				var writer = new CodeWriter(sbUrl);
 				writer
 					.WriteLine("// This file was auto-generated. Do not edit directly.")
+					.WriteLine($"// At {DateTimeOffset.Now:O}")
 					.WriteLine("using System;")
 					.WriteLine("using System.Collections.Generic;")
 					.WriteLine("")
@@ -68,6 +74,7 @@ namespace FluentRest.SourceGenerator
 				var writer = new CodeWriter(sbHttp);
 				writer
 					.WriteLine("// This file was auto-generated. Do not edit directly.")
+					.WriteLine($"// At {DateTimeOffset.Now:O}")
 					.WriteLine("using System;")
 					.WriteLine("using System.Collections.Generic;")
 					.WriteLine("using System.IO;")
@@ -105,18 +112,13 @@ namespace FluentRest.SourceGenerator
 			);
 		}
 
-		private static void ShowError(string error) 
-		{
-			// Console.ForegroundColor = ConsoleColor.Red;
-			// Console.WriteLine(error);
-			// Console.ReadLine();
-		}
 
-		private static MethodArg[] _extendedArgs = new[] {
-			new MethodArg { Name = "request", Type = "IFluentRestRequest", Description = "This IFluentRestRequest" },
-			new MethodArg { Name = "url", Type = "Url", Description = "This FluentRest.Url." },
-			new MethodArg { Name = "url", Type = "string", Description = "This URL." },
-			new MethodArg { Name = "uri", Type = "Uri", Description = "This System.Uri." }
+
+		private static MethodArg[] _extendedArgs = {
+			new() { Name = "request", Type = "IFluentRestRequest", Description = "This IFluentRestRequest" },
+			new() { Name = "url", Type = "Url", Description = "This FluentRest.Url." },
+			new() { Name = "url", Type = "string", Description = "This URL." },
+			new() { Name = "uri", Type = "Uri", Description = "This System.Uri." }
 		};
 
 		private static void WriteUrlBuilderExtensionMethods(CodeWriter writer) {

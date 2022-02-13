@@ -15,7 +15,7 @@ namespace FluentRest.Http.Testing
 	/// </summary>
 	public abstract class HttpTestSetup
 	{
-		private readonly List<Func<HttpResponseMessage>> _responses = new List<Func<HttpResponseMessage>>();
+		private readonly List<Func<HttpResponseMessage>> _responses = new ();
 
 		private int _respIndex = 0;
 		private bool _allowRealHttp = false;
@@ -35,7 +35,7 @@ namespace FluentRest.Http.Testing
 
 		internal bool FakeRequest => !_allowRealHttp;
 
-		internal HttpResponseMessage GetNextResponse() {
+		internal HttpResponseMessage? GetNextResponse() {
 			if (!_responses.Any())
 				return null;
 

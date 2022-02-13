@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net.Http;
+using System.Threading;
 using FluentRest.Http.Content;
 
 namespace FluentRest.Http
@@ -40,6 +41,16 @@ namespace FluentRest.Http
 		/// Otherwise null.
 		/// </summary>
 		public FluentRestRedirect? Redirect { get; set; }
+
+		/// <summary>
+		/// The cancellation token used in the call
+		/// </summary>
+		public CancellationToken? CancellationToken { get; set; }
+		
+		/// <summary>
+		/// The completion option used in the call
+		/// </summary>
+		public HttpCompletionOption? HttpCompletionOption { get; set; }
 
 		/// <summary>
 		/// The raw HttpResponseMessage associated with the call if the call completed, otherwise null.
@@ -85,6 +96,8 @@ namespace FluentRest.Http
 			(int)HttpResponseMessage.StatusCode < 400 ? true :
 			string.IsNullOrEmpty(Request?.Settings?.AllowedHttpStatusRange) ? false :
 			HttpStatusRangeParser.IsMatch(Request.Settings.AllowedHttpStatusRange, HttpResponseMessage.StatusCode);
+
+		public int RetryCount { get; set; }
 
 		/// <summary>
 		/// Returns the verb and absolute URI associated with this call.

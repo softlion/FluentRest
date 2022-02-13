@@ -282,6 +282,7 @@ namespace FluentRest.Test.Http
 				HttpTest.ShouldHaveMadeACall().WithoutQueryParams(new { z = 333, y = 222 }));
 		}
 
+		[TestMethod]
 		[DataRow(false)]
 		[DataRow(true)]
 		public async Task can_assert_multiple_occurances_of_query_param(bool buildFluently) {
@@ -329,13 +330,29 @@ namespace FluentRest.Test.Http
 		}
 
 		[TestMethod]
-		public async Task can_assert_oauth_token() {
+		public async Task can_assert_oauth_token() 
+		{
 			await "https://auth.com".WithOAuthBearerToken("foo").GetAsync();
 			HttpTest.ShouldHaveMadeACall().WithOAuthBearerToken();
 			HttpTest.ShouldHaveMadeACall().WithOAuthBearerToken("foo");
 			HttpTest.ShouldHaveMadeACall().WithOAuthBearerToken("*oo");
 			Assert.ThrowsException<HttpTestException>(() => HttpTest.ShouldHaveMadeACall().WithOAuthBearerToken("bar"));
 			Assert.ThrowsException<HttpTestException>(() => HttpTest.ShouldHaveMadeACall().WithBasicAuth());
+		}
+
+		[TestMethod]
+		public async Task can_retry_oauth_token() 
+		{
+			HttpTest.RespondWith("", 401).RespondWith("", 200);
+			await "https://auth.com".WithOAuthBearerToken("bar", async (call, oldToken) =>
+			{
+				Assert.AreEqual(401, HttpTest.CallLog.Last().Response.StatusCode);
+				HttpTest.ShouldHaveMadeACall().WithOAuthBearerToken("bar");
+				return "foo";
+			}).GetAsync();
+
+			Assert.AreEqual(200, HttpTest.CallLog.Last().Response.StatusCode);
+			HttpTest.ShouldHaveMadeACall().WithOAuthBearerToken("foo");
 		}
 
 		[TestMethod]

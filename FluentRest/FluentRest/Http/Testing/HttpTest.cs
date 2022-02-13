@@ -37,7 +37,7 @@ namespace FluentRest.Http.Testing
 		/// <summary>
 		/// Gets the current HttpTest from the logical (async) call context
 		/// </summary>
-		public static HttpTest Current => GetCurrentTest();
+		public static HttpTest? Current => GetCurrentTest();
 
 		/// <summary>
 		/// List of all (fake) HTTP calls made since this HttpTest was created.
@@ -104,8 +104,8 @@ namespace FluentRest.Http.Testing
 			SetCurrentTest(null);
 		}
 
-		private static readonly System.Threading.AsyncLocal<HttpTest> _test = new System.Threading.AsyncLocal<HttpTest>();
-		private static void SetCurrentTest(HttpTest test) => _test.Value = test;
-		private static HttpTest GetCurrentTest() => _test.Value;
+		private static readonly System.Threading.AsyncLocal<HttpTest?> _test = new ();
+		private static void SetCurrentTest(HttpTest? test) => _test.Value = test;
+		private static HttpTest? GetCurrentTest() => _test.Value;
 	}
 }

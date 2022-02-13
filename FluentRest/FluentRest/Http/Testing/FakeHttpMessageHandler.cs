@@ -23,14 +23,19 @@ namespace FluentRest.Http.Testing
 		/// configured to fake HTTP calls (the default behavior), blocks the call from being made and provides a fake
 		/// response as configured in the test.
 		/// </summary>
-		protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken) {
-			if (HttpTest.Current != null) {
+		protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken) 
+		{
+			if (HttpTest.Current != null) 
+			{
 				var call = request.GetFluentRestDetail();
-				if (call != null) {
+				if (call != null) 
+				{
 					HttpTest.Current.LogCall(call);
 					var setup = HttpTest.Current.FindSetup(call);
-					if (setup?.FakeRequest == true) {
-						var resp = setup.GetNextResponse() ?? new HttpResponseMessage {
+					if (setup.FakeRequest) 
+					{
+						var resp = setup.GetNextResponse() ?? new HttpResponseMessage 
+						{
 							StatusCode = HttpStatusCode.OK,
 							Content = new StringContent("")
 						};

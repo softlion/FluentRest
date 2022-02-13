@@ -59,6 +59,8 @@
         <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
         <PackageProjectUrl>https://github.com/softlion/FluentRest</PackageProjectUrl>
         <PackageReleaseNotes>
+            1.0.2: add automatic refresh of bearer token
+            1.0.1: set json defaults as ignore property case and ignore write default
             1.0.0: initial release
         </PackageReleaseNotes>
     </PropertyGroup>

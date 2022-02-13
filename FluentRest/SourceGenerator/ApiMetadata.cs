@@ -89,6 +89,11 @@ namespace FluentRest.SourceGenerator
 				.AddArg("password", "string", "Password of authenticating user.");
 			yield return Create("WithOAuthBearerToken", "Creates a new FluentRestRequest and sets the Authorization header with a bearer token according to OAuth 2.0 specification.")
 				.AddArg("token", "string", "The acquired oAuth bearer token.");
+            yield return Create("WithOAuthBearerToken", "Creates a new FluentRestRequest and sets the Authorization header with a bearer token according to OAuth 2.0 specification. Optionally sets an action that refreshes the token when a 401 Unauthorized error is returned.")
+                .AddArg("token", "string?", "The acquired oAuth bearer token.")
+                .AddArg("refreshTokenAction", "RefreshTokenActionDelegate?", "An optional action to refresh the token if 401 Unauthorized was returned from the call.")
+                .AddArg("maxRetry", "int", "An optional action to refresh the token if 401 Unauthorized was returned from the call.", "1")
+                ;
 
 			// cookie extensions
 			yield return Create("WithCookie", "Creates a new FluentRestRequest and adds a name-value pair to its Cookie header. " +
@@ -153,7 +158,7 @@ namespace FluentRest.SourceGenerator
 				select new HttpExtensionMethod(verb, isGeneric, reqType, respType) { ExtendedTypeArg = extendedArg };
 		}
 
-		private static bool IsSupportedCombo(string verb, string reqType, string respType, string extensionType, bool isGeneric) 
+		private static bool IsSupportedCombo(string? verb, string? reqType, string? respType, string extensionType, bool isGeneric) 
         {
 			if (respType != null && verb != "Get")
 				return false;
@@ -162,26 +167,22 @@ namespace FluentRest.SourceGenerator
             if ((!isGeneric && respType == "Json") || respType == "JsonList")
                 return false;
 
-			switch (verb) {
-				case "Post":
-					return true;
-				case "Put":
-				case "Patch":
-					return reqType != "UrlEncoded";
-				case null: // Send
-					return reqType != null || extensionType != "IFluentRestRequest";
-				default: // Get, Head, Delete, Options
-					return reqType == null;
-			}
-		}
+            return verb switch
+            {
+                "Post" => true,
+                "Put" => reqType != "UrlEncoded",
+                "Patch" => reqType != "UrlEncoded",
+                null => // Send
+                    reqType != null || extensionType != "IFluentRestRequest",
+                _ => reqType == null
+            };
+        }
 
-		private static bool AllowDeserializeToGeneric(string deserializeType) {
-			switch (deserializeType) {
-				case "Json":
-					return true;
-				default:
-					return false;
-			}
-		}
-	}
+		private static bool AllowDeserializeToGeneric(string deserializeType) 
+            => deserializeType switch
+            {
+                "Json" => true,
+                _ => false
+            };
+    }
 }

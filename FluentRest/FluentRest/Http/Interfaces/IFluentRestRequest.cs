@@ -48,6 +48,8 @@ namespace FluentRest.Http
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <param name="completionOption">The HttpCompletionOption used in the request. Optional.</param>
         /// <returns>A Task whose result is the received IFluentRestResponse.</returns>
-        Task<IFluentRestResponse> SendAsync(HttpMethod verb, HttpContent? content = null, CancellationToken cancellationToken = default(CancellationToken), HttpCompletionOption completionOption = HttpCompletionOption.ResponseContentRead);
+        Task<IFluentRestResponse> SendAsync(HttpMethod verb, HttpContent? content = null, CancellationToken cancellationToken = default, HttpCompletionOption completionOption = HttpCompletionOption.ResponseContentRead);
+
+        Task<IFluentRestResponse> SendAgainAsync(FluentRestDetail call);
     }
 }

@@ -1,10 +1,15 @@
 ﻿using System;
 using System.Collections;
+using System.Net;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using FluentRest.Urls;
 
 namespace FluentRest.Http
 {
+	public delegate Task<string?> RefreshTokenActionDelegate(FluentRestDetail call, string? currentToken);
+
 	/// <summary>
 	/// Fluent extension methods for working with HTTP request headers.
 	/// </summary>
@@ -17,11 +22,11 @@ namespace FluentRest.Http
 	    /// <param name="name">HTTP header name.</param>
 	    /// <param name="value">HTTP header value.</param>
 	    /// <returns>This IFluentRestClient or IFluentRestRequest.</returns>
-	    public static T WithHeader<T>(this T clientOrRequest, string name, object value) where T : IHttpSettingsContainer {
+	    public static T WithHeader<T>(this T clientOrRequest, string name, object? value) where T : IHttpSettingsContainer {
 		    if (value == null)
 			    clientOrRequest.Headers.Remove(name);
 			else
-			    clientOrRequest.Headers.AddOrReplace(name, value.ToInvariantString());
+			    clientOrRequest.Headers.AddOrReplace(name, value.ToInvariantString()!);
 		    return clientOrRequest;
 	    }
 
@@ -60,14 +65,62 @@ namespace FluentRest.Http
 		    return clientOrRequest.WithHeader("Authorization", $"Basic {encodedCreds}");
 	    }
 
+	    public static T WithOAuthBearerToken<T>(this T clientOrRequest, string token) where T : IHttpSettingsContainer 
+		    => clientOrRequest.WithHeader("Authorization", $"Bearer {token}");
+
 	    /// <summary>
 	    /// Sets HTTP authorization header with acquired bearer token according to OAuth 2.0 specification to be sent with this IFluentRestRequest or all requests made with this IFluentRestClient.
+	    /// Optionally sets an action that refreshes the token when a 401 Unauthorized error is returned.
 	    /// </summary>
 	    /// <param name="clientOrRequest">The IFluentRestClient or IFluentRestRequest.</param>
 	    /// <param name="token">The acquired bearer token to pass.</param>
+	    /// <param name="refreshTokenAction">An optional action to refresh the token if 401 Unauthorized was returned from the call</param>
+	    /// <param name="maxRetry">Default to 1. Max retry calls to refreshTokenAction if the call still fails after update</param>
 	    /// <returns>This IFluentRestClient or IFluentRestRequest.</returns>
-	    public static T WithOAuthBearerToken<T>(this T clientOrRequest, string token) where T : IHttpSettingsContainer {
-		    return clientOrRequest.WithHeader("Authorization", $"Bearer {token}");
+	    public static T WithOAuthBearerToken<T>(this T clientOrRequest, string? token, RefreshTokenActionDelegate? refreshTokenAction, int maxRetry = 1) where T : IHttpSettingsContainer
+	    {
+		    var currentToken = token;
+		    var sync = new SemaphoreSlim(1, 1);
+		    
+		    if(currentToken != null)
+				clientOrRequest.WithHeader("Authorization", $"Bearer {currentToken}");
+		    
+		    if(refreshTokenAction != null)
+		    {
+			    clientOrRequest.OnError(async call =>
+			    {
+				    if (call.Response?.StatusCode == (int)HttpStatusCode.Unauthorized)
+				    {
+					    if (call.RetryCount < maxRetry)
+					    {
+						    var existingToken = currentToken;
+						    await sync.WaitAsync();
+						    var alreadyRefreshed = existingToken != currentToken;
+
+						    try
+						    {
+							    var newToken = alreadyRefreshed ? currentToken : await refreshTokenAction(call, currentToken);
+							    if (newToken != null && (newToken != currentToken || alreadyRefreshed))
+							    {
+								    currentToken = newToken;
+								    clientOrRequest.WithHeader("Authorization", $"Bearer {newToken}");
+								    call.ExceptionHandled = true;
+								    call.RetryCount++;
+								    call.Response = await call.Request.SendAgainAsync(call);
+							    }
+							    else
+								    currentToken = newToken;
+						    }
+						    finally
+						    {
+							    sync.Release();
+						    }
+					    }
+				    }
+			    });
+		    }
+
+		    return clientOrRequest;
 	    }
     }
 }

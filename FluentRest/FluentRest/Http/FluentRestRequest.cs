@@ -121,10 +121,24 @@ namespace FluentRest.Http
 			}
 		}
 
-		/// <inheritdoc />
-		public async Task<IFluentRestResponse> SendAsync(HttpMethod verb, HttpContent? content = null, CancellationToken cancellationToken = default, HttpCompletionOption completionOption = HttpCompletionOption.ResponseContentRead) 
+		public async Task<IFluentRestResponse> SendAgainAsync(FluentRestDetail call)
 		{
-			client = Client; // "freeze" the client at this point to avoid excessive calls to FluentRestClientFactory.Get (#374)
+			if (call.CancellationToken?.IsCancellationRequested == true)
+				return call.Response!;
+
+			//A new http request is required, as HttpClient refuses to send the same twice
+			var request = new HttpRequestMessage(Verb, Url) { Content = call.HttpRequestMessage.Content };
+			SyncHeaders(request);
+			call.HttpRequestMessage = request;
+			request.SetFluentRestDetail(call);
+			
+			return await DoCall(call);
+		}
+
+		public Task<IFluentRestResponse> SendAsync(HttpMethod verb, HttpContent? content = null, CancellationToken cancellationToken = default, HttpCompletionOption completionOption = HttpCompletionOption.ResponseContentRead) 
+		{
+			// "freeze" the client at this point to avoid excessive calls to FluentRestClientFactory.Get (#374)
+			client = Client; 
 			Verb = verb;
 
 			var request = new HttpRequestMessage(verb, Url) { Content = content };
@@ -133,29 +147,39 @@ namespace FluentRest.Http
 			{
 				Request = this,
 				RedirectedFrom = redirectedFrom,
-				HttpRequestMessage = request
+				HttpRequestMessage = request,
+				CancellationToken = cancellationToken,
+				HttpCompletionOption = completionOption,
 			};
 			request.SetFluentRestDetail(call);
+			
+			return DoCall(call);
+		}
 
+		private async Task<IFluentRestResponse> DoCall(FluentRestDetail call)
+		{
 			await RaiseEventAsync(Settings.BeforeCall, Settings.BeforeCallAsync, call);
 
 			// in case URL or headers were modified in the handler above
-			request.RequestUri = Url.ToUri();
-			SyncHeaders(request);
+			call.HttpRequestMessage.RequestUri = Url.ToUri();
+			SyncHeaders(call.HttpRequestMessage);
 
 			call.StartedUtc = DateTime.UtcNow;
+			var cancellationToken = call.CancellationToken ?? default;
 			var ct = GetCancellationTokenWithTimeout(cancellationToken, out var cts);
 
-			try 
+			try
 			{
-				var response = await Client.HttpClient.SendAsync(request, completionOption, ct);
+				var completionOption = call.HttpCompletionOption!.Value;
+				var response = await Client!.HttpClient.SendAsync(call.HttpRequestMessage, completionOption, ct);
 				call.HttpResponseMessage = response;
-				call.HttpResponseMessage.RequestMessage = request;
+				call.HttpResponseMessage.RequestMessage = call.HttpRequestMessage;
 				call.Response = new FluentRestResponse(call.HttpResponseMessage, CookieJar);
 
-				if (call.Succeeded) {
-					var redirResponse = await ProcessRedirectAsync(call, cancellationToken, completionOption);
-					return redirResponse ?? call.Response;
+				if (call.Succeeded) 
+				{
+					var redirectResponse = await ProcessRedirectAsync(call, cancellationToken, completionOption);
+					return redirectResponse ?? call.Response;
 				}
 				else
 					throw new FluentRestHttpException(call, null);
@@ -166,14 +190,15 @@ namespace FluentRest.Http
 			}
 			finally 
 			{
-				request.Dispose();
+				call.HttpRequestMessage.Dispose();
 				cts?.Dispose();
 				call.EndedUtc = DateTime.UtcNow;
 				await RaiseEventAsync(Settings.AfterCall, Settings.AfterCallAsync, call);
 			}
 		}
 
-		private void SyncHeaders(HttpRequestMessage request) {
+		private void SyncHeaders(HttpRequestMessage request) 
+		{
 			// copy any client-level (default) headers to this request
 			foreach (var header in Client.Headers.Where(h => !this.Headers.Contains(h.Name)).ToList())
 				this.Headers.Add(header.Name, header.Value);
@@ -215,32 +240,34 @@ namespace FluentRest.Http
 
 			CheckForCircularRedirects(call);
 
-			var redir = new FluentRestRequest(call.Redirect.Url) {
+			var redirect = new FluentRestRequest(call.Redirect.Url) {
 				Client = Client,
 				redirectedFrom = call,
 				Settings = { Defaults = Settings }
 			};
 
 			if (CookieJar != null)
-				redir.CookieJar = CookieJar;
+				redirect.CookieJar = CookieJar;
 
 			var changeToGet = call.Redirect.ChangeVerbToGet;
 
-			redir.WithHeaders(Headers.Where(h =>
+			redirect.WithHeaders(Headers.Where(h =>
 				h.Name.OrdinalEquals("Cookie", true) ? false : // never blindly forward Cookie header; CookieJar should be used to ensure rules are enforced
 				h.Name.OrdinalEquals("Authorization", true) ? Settings.Redirects.ForwardAuthorizationHeader :
 				h.Name.OrdinalEquals("Transfer-Encoding", true) ? Settings.Redirects.ForwardHeaders && !changeToGet :
 				Settings.Redirects.ForwardHeaders));
 
 			var ct = GetCancellationTokenWithTimeout(cancellationToken, out var cts);
-			try {
-				return await redir.SendAsync(
+			try 
+			{
+				return await redirect.SendAsync(
 					changeToGet ? HttpMethod.Get : call.HttpRequestMessage.Method,
 					changeToGet ? null : call.HttpRequestMessage.Content,
 					ct,
 					completionOption);
 			}
-			finally {
+			finally 
+			{
 				cts?.Dispose();
 			}
 		}
@@ -248,60 +275,47 @@ namespace FluentRest.Http
 		// partially lifted from https://github.com/dotnet/runtime/blob/master/src/libraries/System.Net.Http/src/System/Net/Http/SocketsHttpHandler/RedirectHandler.cs
 		private FluentRestRedirect? GetRedirect(FluentRestDetail call) 
 		{
-			if (call.Response.StatusCode < 300 || call.Response.StatusCode > 399)
+			if (call.Response.StatusCode is < 300 or > 399)
 				return null;
 
 			if (!call.Response.Headers.TryGetFirst("Location", out var location))
 				return null;
 
-			var redir = new FluentRestRedirect();
+			var redirect = new FluentRestRedirect();
 
 			if (Url.IsValid(location))
-				redir.Url = new Url(location);
+				redirect.Url = new Url(location);
 			else if (location.OrdinalStartsWith("//"))
-				redir.Url = new Url(Url.Scheme + ":" + location);
+				redirect.Url = new Url(Url.Scheme + ":" + location);
 			else if (location.OrdinalStartsWith("/"))
-				redir.Url = Url.Combine(Url.Root, location);
+				redirect.Url = Url.Combine(Url.Root, location);
 			else
-				redir.Url = Url.Combine(Url.Root, Url.Path, location);
+				redirect.Url = Url.Combine(Url.Root, Url.Path, location);
 
 			// Per https://tools.ietf.org/html/rfc7231#section-7.1.2, a redirect location without a
 			// fragment should inherit the fragment from the original URI.
-			if (string.IsNullOrEmpty(redir.Url.Fragment))
-				redir.Url.Fragment = Url.Fragment;
+			if (string.IsNullOrEmpty(redirect.Url.Fragment))
+				redirect.Url.Fragment = Url.Fragment;
 
-			redir.Count = 1 + (call.RedirectedFrom?.Redirect?.Count ?? 0);
+			redirect.Count = 1 + (call.RedirectedFrom?.Redirect?.Count ?? 0);
 
-			var isSecureToInsecure = (Url.IsSecureScheme && !redir.Url.IsSecureScheme);
+			var isSecureToInsecure = Url.IsSecureScheme && !redirect.Url.IsSecureScheme;
+			redirect.Follow = new[] { 301, 302, 303, 307, 308 }.Contains(call.Response.StatusCode) 
+			                  && redirect.Count <= Settings.Redirects.MaxAutoRedirects 
+			                  && (Settings.Redirects.AllowSecureToInsecure || !isSecureToInsecure);
 
-			redir.Follow =
-				new[] { 301, 302, 303, 307, 308 }.Contains(call.Response.StatusCode) &&
-				redir.Count <= Settings.Redirects.MaxAutoRedirects &&
-				(Settings.Redirects.AllowSecureToInsecure || !isSecureToInsecure);
-
-			bool ChangeVerbToGetOn(int statusCode, HttpMethod verb) {
-				switch (statusCode) 
+			bool ChangeVerbToGetOn(int statusCode, HttpMethod verb) =>
+				statusCode switch
 				{
-					// 301 and 302 are a bit ambiguous. The spec says to preserve the verb
-					// but most browsers rewrite it to GET. HttpClient stack changes it if
-					// only it's a POST, presumably since that's a browser-friendly verb.
-					// Seems odd, but sticking with that is probably the safest bet.
-					// https://github.com/dotnet/runtime/blob/master/src/libraries/System.Net.Http/src/System/Net/Http/SocketsHttpHandler/RedirectHandler.cs#L140
-					case 301:
-					case 302:
-						return verb == HttpMethod.Post;
-					case 303:
-						return true;
-					default: // 307 & 308 mainly
-						return false;
-				}
-			}
+					// 301 and 302 are a bit ambiguous. The spec says to preserve the verb but most browsers rewrite it to GET.
+					// HttpClient stack changes it if only it's a POST, presumably since that's a browser-friendly verb.
+					301 or 302 => verb == HttpMethod.Post,
+					303 => true,
+					_ => false // 307 & 308 mainly
+				};
 
-			redir.ChangeVerbToGet =
-				redir.Follow &&
-				ChangeVerbToGetOn(call.Response.StatusCode, call.Request.Verb);
-
-			return redir;
+			redirect.ChangeVerbToGet = redirect.Follow && ChangeVerbToGetOn(call.Response.StatusCode, call.Request.Verb);
+			return redirect;
 		}
 
 		private void CheckForCircularRedirects(FluentRestDetail? call, HashSet<string>? visited = null) 
@@ -318,10 +332,10 @@ namespace FluentRest.Http
 		internal static async Task<IFluentRestResponse> HandleExceptionAsync(FluentRestDetail call, Exception ex, CancellationToken token) 
 		{
 			call.Exception = ex;
+			call.ExceptionHandled = false;
 			await RaiseEventAsync(call.Request.Settings.OnError, call.Request.Settings.OnErrorAsync, call);
-
 			if (call.ExceptionHandled)
-				return call.Response;
+				return call.Response!;
 
 			if (ex is OperationCanceledException && !token.IsCancellationRequested)
 				throw new FluentRestHttpTimeoutException(call, ex);
@@ -332,10 +346,11 @@ namespace FluentRest.Http
 			throw new FluentRestHttpException(call, ex);
 		}
 
-		private static Task RaiseEventAsync(Action<FluentRestDetail>? syncHandler, Func<FluentRestDetail, Task>? asyncHandler, FluentRestDetail call) 
+		private static async Task RaiseEventAsync(Action<FluentRestDetail>? syncHandler, Func<FluentRestDetail, Task>? asyncHandler, FluentRestDetail call) 
 		{
 			syncHandler?.Invoke(call);
-			return asyncHandler != null ? asyncHandler(call) : Task.FromResult(0);
+			if (asyncHandler != null)
+				await asyncHandler(call);
 		}
 	}
 }

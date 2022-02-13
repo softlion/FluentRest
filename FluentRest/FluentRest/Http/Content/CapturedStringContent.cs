@@ -28,7 +28,7 @@ namespace FluentRest.Http.Content
 		/// </summary>
 		/// <param name="content">The content.</param>
 		/// <param name="contentType">Value of the Content-Type header. To exclude the header, set to null explicitly.</param>
-		public CapturedStringContent(string content, string contentType) : base(content) {
+		public CapturedStringContent(string content, string? contentType) : base(content) {
 			Content = content;
 			Headers.Remove("Content-Type");
 			if (contentType != null)
