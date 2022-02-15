@@ -101,6 +101,108 @@ FluentRestHttp.Configure(settings =>
 });
 ```
 
+### Prevent throwing an exception if the HTTP call fails (when internet is offline)
+```c#
+FluentRestHttp.Configure(settings =>
+{
+    settings.OnError = call =>
+    {
+        //If the call fails with an exception, return notfound instead of throwing
+        if (call.Exception != null)
+        {
+            call.Response = new FluentRestResponse(new HttpResponseMessage(HttpStatusCode.NotFound));
+            call.ExceptionHandled = true;
+        }
+    };
+}
+```
+
+### Refresh a JWT automatically
+This snippet checks the JWT for expiration, and refreshes it before any api call.  
+The check happens only for api calls having an Authorization header, so obviously requiring a valid JWT.  
+`ApiSignIn()` must not have an Authorization header as this would create an infinite loop.
+
+```c#
+//In a class
+private readonly SemaphoreSlim sync = new (1,1);
+public string? AuthorizationToken { get; private set; }
+
+//In the class constructor
+settings.BeforeCallAsync = async call =>
+{
+    if (call.Request.Headers.Contains("Authorization"))
+    {
+        //Make sure the token is still valid. If we can't validate it, disconnect and go back to login screen.
+        if (AuthorizationToken != null)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var validationParameters = new TokenValidationParameters
+            {
+                ValidateLifetime = true,
+                ValidateAudience = false,
+                ValidateIssuer = false,
+                ValidateActor = false,
+                ValidateTokenReplay = false,
+                ValidateIssuerSigningKey = false,
+                //IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key)) // The same key as the one that generated the token
+            };
+
+            try
+            {
+                tokenHandler.ValidateToken(AuthorizationToken, validationParameters, out var _);
+            }
+            catch (Exception)
+            {
+                //Invalid JWT: try relogin once
+                var old = AuthorizationToken;
+                //sync required as this can be called by multiple threads simultaneously; and we want to refresh only once.
+                await sync.WaitAsync();
+
+                try
+                {
+                    if (old != AuthorizationToken)
+                    {
+                        if(AuthorizationToken != null)
+                            call.Request.WithOAuthBearerToken(AuthorizationToken);
+                    }
+                    else if (userEmail != null && userPassword != null)
+                    {
+                        //we use the last auth info stored locally. You have to provide pour own login code, as this vary from service to service.
+                        AuthorizationToken = await ApiSignIn(userEmail, userPassword);
+                        if (AuthorizationToken != null)
+                            call.Request.WithOAuthBearerToken(AuthorizationToken);
+                    }
+                    else
+                        AuthorizationToken = null;
+                        
+                    if (AuthorizationToken == null)
+                        await Logout();
+                }
+                finally
+                {
+                    sync.Release();
+                }
+            }
+        }
+    }
+};
+
+
+//Example use
+const string Endpoint = "https://your.api.endpoint";
+public async Task<ApiCallResultModel?> Hotspot_Status(CancellationToken cancel)
+{
+    var response = await Endpoint.AppendPathSegment("/some/api").AllowAnyHttpStatus()
+        .WithOAuthBearerToken(AuthorizationToken)
+        .GetAsync(cancel);
+
+    if (response.StatusCode is not (>= 200 and < 300))
+        return null;
+
+    return await response.GetJsonAsync<ApiCallResultModel>();
+}
+```
+
 ### Disable https certificate validation
 ```c#
 public class UntrustedCertClientFactory : DefaultHttpClientFactory
