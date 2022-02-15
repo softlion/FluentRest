@@ -225,3 +225,15 @@ public async Task<bool> Remove(string itemId)
     return response.StatusCode is >= 200 and < 300;
 }
 ```
+
+## Handling errors
+
+When an http or json error occurs, the global custom handlers `OnError` and `OnErrorAsync` are both called in this order respectively.
+
+If you set `ExceptionHandled` to true in the object received by one of these handlers, the exception is ignored. Then for http errors, you should set the `Response` property and it will be returned to the original caller. For json parsing errors, `default(T)` is always returned, you can not change this value.
+
+If you don't set `ExceptionHandled` to true, the original call will throw one of the exception below.
+
+* `FluentRestParsingException` when json parsing fails (for json methods like `GetJsonAsync<T>`)
+* `FluentRestHttpTimeoutException` when a timeout occurs
+* `FluentRestHttpException` when a http call fails directly (ie: domain not found, connection failed, ...)
