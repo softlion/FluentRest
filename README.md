@@ -72,7 +72,7 @@ return await response.GetJsonAsync<List<ApiSomeResult>>();
 ```
 
 ### Extract a Bearer token from the response header
-```
+```c#
 var response = await Endpoint.AppendPathSegment("signin").AllowAnyHttpStatus()
                              .PostJsonAsync(new { username = email, password });
 if (response.StatusCode is not (>= 200 and < 300))
