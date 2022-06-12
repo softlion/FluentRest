@@ -1,0 +1,9 @@
+{
+  "solution": {
+    "path": "../FluentRest/FluentRest.sln",
+    "projects": [
+      "FluentRest\\FluentRest.csproj",
+      "SourceGenerator\\SourceGenerator.csproj"
+    ]
+  }
+}

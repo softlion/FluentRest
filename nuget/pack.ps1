@@ -9,16 +9,16 @@ if ($IsMacOS) {
 
 #####################
 #Build release config
-$version="1.0.2"
+$version="1.0.3"
 $versionSuffix=""
 $nugetVersion="$version$versionSuffix"
 #$versionSuffix=".$env:BUILD_NUMBER" 
 
 cd $PSScriptRoot
 del *.nupkg
-& $msbuild "..\FluentRest\FluentRest.sln" /restore /p:Configuration=Release /p:Platform="Any CPU" /p:Version="$version" /p:VersionSuffix="$versionSuffix" /p:Deterministic=false /p:PackageOutputPath="$PSScriptRoot" /p:IsHotRestartBuild=true --% /t:Clean;Build;Pack
+& $msbuild "FluentRest.slnf" /restore /p:Configuration=Release /p:Platform="Any CPU" /p:Version="$version" /p:VersionSuffix="$versionSuffix" /p:Deterministic=false /p:PackageOutputPath="$PSScriptRoot" /p:IsHotRestartBuild=true --% /t:Clean;Build
+& $msbuild "FluentRest.slnf" /p:Configuration=Release /p:Platform="Any CPU" /p:Version="$version" /p:VersionSuffix="$versionSuffix" /p:Deterministic=false /p:PackageOutputPath="$PSScriptRoot" /p:IsHotRestartBuild=true --% /t:FluentRest:Pack
 if ($lastexitcode -ne 0) { exit $lastexitcode; }
-del FluentRest.SourceGenerator.*.nupkg
 
 ####################
 # PUSH
