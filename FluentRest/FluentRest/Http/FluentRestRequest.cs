@@ -190,10 +190,10 @@ namespace FluentRest.Http
 			}
 			finally 
 			{
-				call.HttpRequestMessage.Dispose();
 				cts?.Dispose();
 				call.EndedUtc = DateTime.UtcNow;
 				await RaiseEventAsync(Settings.AfterCall, Settings.AfterCallAsync, call);
+				call.HttpRequestMessage.Dispose();
 			}
 		}
 
@@ -337,13 +337,12 @@ namespace FluentRest.Http
 			if (call.ExceptionHandled)
 				return call.Response!;
 
-			if (ex is OperationCanceledException && !token.IsCancellationRequested)
-				throw new FluentRestHttpTimeoutException(call, ex);
-
-			if (ex is FluentRestHttpException)
-				throw ex;
-
-			throw new FluentRestHttpException(call, ex);
+			throw ex switch
+			{
+				OperationCanceledException when !token.IsCancellationRequested => new FluentRestHttpTimeoutException(call, ex),
+				FluentRestHttpException => ex,
+				_ => new FluentRestHttpException(call, ex)
+			};
 		}
 
 		private static async Task RaiseEventAsync(Action<FluentRestDetail>? syncHandler, Func<FluentRestDetail, Task>? asyncHandler, FluentRestDetail call) 
