@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-	<TargetFrameworks>netstandard2.1;net6</TargetFrameworks>
+	<TargetFrameworks>netstandard2.1;net7.0</TargetFrameworks>
     <Nullable>enable</Nullable>
 	<LangVersion>latest</LangVersion>
 	<RootNamespace>RestCall</RootNamespace>
@@ -13,11 +13,11 @@
 		<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive; compile</IncludeAssets>
     </PackageReference>
         
-    <PackageReference Include="Fody" Version="6.6.0">
+    <PackageReference Include="Fody" Version="6.6.4">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="System.Net.Http.Json" Version="6.0.0" />
+    <PackageReference Include="System.Net.Http.Json" Version="7.0.0" />
   </ItemGroup>
 
     <ItemGroup>
@@ -41,7 +41,7 @@
         <PackageTags>http rest json netstandard</PackageTags>
         <Title>A small, simple and powerful System.Text.Json only HTTP client library</Title>
         <Description>
-            A small, simple and powerful .net6, maui compatible, and System.Text.Json only HTTP client library.
+            A small, simple and powerful .net7, maui compatible, and System.Text.Json only HTTP client library.
 
             Also compatible with xamarin and .net core.
         </Description>
@@ -59,6 +59,7 @@
         <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
         <PackageProjectUrl>https://github.com/softlion/FluentRest</PackageProjectUrl>
         <PackageReleaseNotes>
+            1.0.3: net7
             1.0.2: add automatic refresh of bearer token
             1.0.1: set json defaults as ignore property case and ignore write default
             1.0.0: initial release

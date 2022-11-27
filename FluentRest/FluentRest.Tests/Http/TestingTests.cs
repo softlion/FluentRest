@@ -395,7 +395,7 @@ namespace FluentRest.Test.Http
 			HttpTest.RespondWith(headers: new { h1 = "foo" });
 
 			var resp = await "http://www.api.com".GetAsync();
-			Assert.AreEqual(("h1", "foo"), resp.Headers.Single());
+			Assert.AreEqual(("h1", "foo"), resp.Headers.Single()); //HttpClient from .net7 always adds Content-Length
 		}
 
 		[TestMethod]
