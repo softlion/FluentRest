@@ -65,8 +65,8 @@ namespace FluentRest.Http
 		    return clientOrRequest.WithHeader("Authorization", $"Basic {encodedCreds}");
 	    }
 
-	    public static T WithOAuthBearerToken<T>(this T clientOrRequest, string token) where T : IHttpSettingsContainer 
-		    => clientOrRequest.WithHeader("Authorization", $"Bearer {token}");
+	    public static T WithOAuthBearerToken<T>(this T clientOrRequest, string? token) where T : IHttpSettingsContainer 
+		    => token != null ? clientOrRequest.WithHeader("Authorization", $"Bearer {token}") : clientOrRequest;
 
 	    /// <summary>
 	    /// Sets HTTP authorization header with acquired bearer token according to OAuth 2.0 specification to be sent with this IFluentRestRequest or all requests made with this IFluentRestClient.
