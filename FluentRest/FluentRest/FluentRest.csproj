@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-	<TargetFrameworks>netstandard2.1;net7.0</TargetFrameworks>
+	<TargetFrameworks>netstandard2.1;net8.0</TargetFrameworks>
     <Nullable>enable</Nullable>
 	<LangVersion>latest</LangVersion>
 	<RootNamespace>RestCall</RootNamespace>
@@ -13,11 +13,11 @@
 		<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive; compile</IncludeAssets>
     </PackageReference>
         
-    <PackageReference Include="Fody" Version="6.7.0">
+    <PackageReference Include="Fody" Version="6.8.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="System.Net.Http.Json" Version="7.0.1" />
+    <PackageReference Include="System.Net.Http.Json" Version="8.0.0-rc.2.23479.6" />
   </ItemGroup>
 
     <ItemGroup>
@@ -59,6 +59,7 @@
         <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
         <PackageProjectUrl>https://github.com/softlion/FluentRest</PackageProjectUrl>
         <PackageReleaseNotes>
+            1.0.6: net8
             1.0.3: net7
             1.0.2: add automatic refresh of bearer token
             1.0.1: set json defaults as ignore property case and ignore write default
