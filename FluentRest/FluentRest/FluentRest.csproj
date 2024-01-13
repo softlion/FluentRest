@@ -17,7 +17,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="System.Net.Http.Json" Version="8.0.0-rc.2.23479.6" />
+    <PackageReference Include="System.Net.Http.Json" Version="8.0.0" />
   </ItemGroup>
 
     <ItemGroup>
@@ -59,6 +59,7 @@
         <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
         <PackageProjectUrl>https://github.com/softlion/FluentRest</PackageProjectUrl>
         <PackageReleaseNotes>
+            1.0.7: nuget updates
             1.0.6: net8
             1.0.3: net7
             1.0.2: add automatic refresh of bearer token
