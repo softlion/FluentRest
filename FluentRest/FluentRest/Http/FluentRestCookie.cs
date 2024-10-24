@@ -28,10 +28,10 @@ namespace FluentRest.Http
         /// <param name="value">Value of the cookie.</param>
         /// <param name="originUrl">URL of request that sent the original Set-Cookie header.</param>
         /// <param name="dateReceived">Date/time that original Set-Cookie header was received. Defaults to current date/time. Important for Max-Age to be enforced correctly.</param>
-        public FluentRestCookie(string name, string value, string originUrl = null, DateTimeOffset? dateReceived = null) {
+        public FluentRestCookie(string name, string value, string? originUrl = null, DateTimeOffset? dateReceived = null) {
             Name = name;
             Value = value;
-            OriginUrl = originUrl;
+            OriginUrl = originUrl!=null ? new Url(originUrl) : null;
             DateReceived = dateReceived ?? DateTimeOffset.UtcNow;
         }
 
@@ -39,7 +39,7 @@ namespace FluentRest.Http
         /// The URL that originally sent the Set-Cookie response header. If adding to a CookieJar, this is required unless
         /// both Domain AND Path are specified.
         /// </summary>
-        public Url OriginUrl { get; }
+        public Url? OriginUrl { get; }
 
         /// <summary>
         /// Date and time the cookie was received. Defaults to date/time this FluentRestCookie was created.
@@ -121,8 +121,8 @@ namespace FluentRest.Http
         /// Used by CookieJar to determine whether to add a cookie or update an existing one.
         /// </summary>
         public string GetKey() {
-            var domain = string.IsNullOrEmpty(Domain) ? "*" + OriginUrl.Host : Domain;
-            var path = string.IsNullOrEmpty(Path) ? OriginUrl.Path : Path;
+            var domain = string.IsNullOrEmpty(Domain) ? "*" + (OriginUrl?.Host ?? "") : Domain;
+            var path = string.IsNullOrEmpty(Path) ? (OriginUrl?.Path ?? "") : Path;
             if (path.Length == 0) path = "/";
             return $"{domain}{path}:{Name}";
         }
@@ -134,7 +134,7 @@ namespace FluentRest.Http
             _locked = true;
         }
 
-        private void Update<T>(ref T field, T newVal, [CallerMemberName]string propName = null) {
+        private void Update<T>(ref T field, T newVal, [CallerMemberName]string? propName = null) {
             // == throws with generics (strangely), and .Equals needs a null check. Jon Skeet to the rescue.
             // https://stackoverflow.com/a/390974/62600
             if (EqualityComparer<T>.Default.Equals(field, newVal))

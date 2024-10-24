@@ -1,8 +1,5 @@
-using System;
-using System.Dynamic;
 using System.Linq;
 using System.Net.Http;
-using System.Text.Json;
 using System.Threading.Tasks;
 using FluentRest.Http;
 using FluentRest.Http.Testing;

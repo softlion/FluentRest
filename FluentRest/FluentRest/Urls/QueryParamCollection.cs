@@ -15,7 +15,7 @@ namespace FluentRest.Urls
 		/// Returns a new instance of QueryParamCollection
 		/// </summary>
 		/// <param name="query">Optional query string to parse.</param>
-		public QueryParamCollection(string query = null) {
+		public QueryParamCollection(string? query = null) {
 			if (query == null)
 				return;
 

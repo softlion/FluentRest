@@ -28,7 +28,7 @@ namespace FluentRest.Http
 		/// <summary>
 		/// Gets or sets base URL associated with this client.
 		/// </summary>
-		string BaseUrl { get; set; }
+		string? BaseUrl { get; set; }
 
 		/// <summary>
 		/// Creates a new IFluentRestRequest that can be further built and sent fluently.

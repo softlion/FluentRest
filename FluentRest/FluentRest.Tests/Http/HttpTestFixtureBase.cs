@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using FluentRest.Http.Testing;
+﻿using FluentRest.Http.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace FluentRest.Test.Http

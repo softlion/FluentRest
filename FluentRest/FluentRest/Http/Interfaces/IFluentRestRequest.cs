@@ -15,7 +15,7 @@ namespace FluentRest.Http
         /// <summary>
         /// Gets or sets the IFluentRestClient to use when sending the request.
         /// </summary>
-        IFluentRestClient Client { get; set; }
+        IFluentRestClient? Client { get; set; }
 
         /// <summary>
         /// Gets or sets the HTTP method of the request. Normally you don't need to set this explicitly; it will be set
@@ -26,7 +26,7 @@ namespace FluentRest.Http
         /// <summary>
         /// Gets or sets the URL to be called.
         /// </summary>
-        Url Url { get; set; }
+        Url? Url { get; set; }
 
         /// <summary>
         /// Gets Name/Value pairs parsed from the Cookie request header.
@@ -38,7 +38,7 @@ namespace FluentRest.Http
         /// should be sent with this request (based on Domain, Path, and other rules) are immediately copied to the Cookie
         /// request header, and any Set-Cookie headers received in the response will be written to the CookieJar.
         /// </summary>
-        CookieJar CookieJar { get; set; }
+        CookieJar? CookieJar { get; set; }
 
         /// <summary>
         /// Asynchronously sends the HTTP request. Mainly used to implement higher-level extension methods (GetJsonAsync, etc).

@@ -11,6 +11,15 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SourceGenerator", "SourceGe
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SourceGenerator.Tests", "SourceGenerator.Tests\SourceGenerator.Tests.csproj", "{1A64C788-7746-45DF-BB31-C81F92B0DC46}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Additional Files", "Additional Files", "{BB66EB1A-3CD1-4DB9-B621-C183FB037077}"
+	ProjectSection(SolutionItems) = preProject
+		..\global.json = ..\global.json
+		..\LICENSE.md = ..\LICENSE.md
+		..\README.md = ..\README.md
+		..\nuget\FluentRest.slnf = ..\nuget\FluentRest.slnf
+		..\nuget\pack.ps1 = ..\nuget\pack.ps1
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

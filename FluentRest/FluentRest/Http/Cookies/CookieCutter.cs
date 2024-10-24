@@ -222,14 +222,14 @@ namespace FluentRest.Http
 
 			// implementation of default-path algorithm https://tools.ietf.org/html/rfc6265#section-5.1.4
 			string GetDefaultPath() {
-				var origPath = cookie.OriginUrl.Path;
+				var origPath = cookie.OriginUrl?.Path ?? "";
 				if (origPath == "" || origPath[0] != '/') return "/";
 				if (origPath.Count(c => c == '/') <= 1) return "/";
-				return origPath.Substring(0, origPath.LastIndexOf('/'));
+				return origPath[..origPath.LastIndexOf('/')];
 			}
 
 			// https://tools.ietf.org/html/rfc6265#section-5.2.4
-			var cookiePath = (cookie.Path?.OrdinalStartsWith("/") == true) ? cookie.Path : GetDefaultPath();
+			var cookiePath = cookie.Path?.OrdinalStartsWith("/") == true ? cookie.Path : GetDefaultPath();
 
 			if (cookiePath.Length > 1 && cookiePath.OrdinalEndsWith("/"))
 				cookiePath = cookiePath.TrimEnd('/');

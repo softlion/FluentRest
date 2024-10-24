@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Text;
 using FluentRest.Http.Configuration;
 using FluentRest.Urls;
 
@@ -15,20 +14,20 @@ namespace FluentRest.Http.Content
 	/// </summary>
 	public class CapturedMultipartContent : MultipartContent
 	{
-		private readonly FluentRestHttpSettings _settings;
-		private readonly List<HttpContent> _capturedParts = new List<HttpContent>();
+		private readonly FluentRestHttpSettings settings;
+		private readonly List<HttpContent> capturedParts = [];
 
 		/// <summary>
 		/// Gets an array of HttpContent objects that make up the parts of the multipart request.
 		/// </summary>
-		public IReadOnlyList<HttpContent> Parts => _capturedParts;
+		public IReadOnlyList<HttpContent> Parts => capturedParts;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="CapturedMultipartContent"/> class.
 		/// </summary>
 		/// <param name="settings">The FluentRestHttpSettings used to serialize each content part. (Defaults to FluentRestHttp.GlobalSettings.)</param>
-		public CapturedMultipartContent(FluentRestHttpSettings settings = null) : base("form-data") {
-			_settings = settings ?? FluentRestHttp.GlobalSettings;
+		public CapturedMultipartContent(FluentRestHttpSettings? settings = null) : base("form-data") {
+			this.settings = settings ?? FluentRestHttp.GlobalSettings;
 		}
 
 		/// <summary>
@@ -36,8 +35,8 @@ namespace FluentRest.Http.Content
 		/// </summary>
 		/// <param name="subtype">The subtype of the multipart content.</param>
 		/// <param name="settings">The FluentRestHttpSettings used to serialize each content part. (Defaults to FluentRestHttp.GlobalSettings.)</param>
-		public CapturedMultipartContent(string subtype, FluentRestHttpSettings settings = null) : base(subtype) {
-			_settings = settings ?? FluentRestHttp.GlobalSettings;
+		public CapturedMultipartContent(string subtype, FluentRestHttpSettings? settings = null) : base(subtype) {
+			this.settings = settings ?? FluentRestHttp.GlobalSettings;
 		}
 
 		/// <summary>
@@ -46,8 +45,8 @@ namespace FluentRest.Http.Content
 		/// <param name="subtype">The subtype of the multipart content.</param>
 		/// <param name="boundary">The boundary string for the multipart content.</param>
 		/// <param name="settings">The FluentRestHttpSettings used to serialize each content part. (Defaults to FluentRestHttp.GlobalSettings.)</param>
-		public CapturedMultipartContent(string subtype, string boundary, FluentRestHttpSettings settings = null) : base(subtype, boundary) {
-			_settings = settings ?? FluentRestHttp.GlobalSettings;
+		public CapturedMultipartContent(string subtype, string boundary, FluentRestHttpSettings? settings = null) : base(subtype, boundary) {
+			this.settings = settings ?? FluentRestHttp.GlobalSettings;
 		}
 
 		/// <summary>
@@ -65,7 +64,7 @@ namespace FluentRest.Http.Content
 		/// <param name="value">The string value of the part.</param>
 		/// <param name="contentType">The value of the Content-Type header for this part. If null (the default), header will be excluded, which complies with the HTML 5 standard.</param>
 		/// <returns>This CapturedMultipartContent instance (supports method chaining).</returns>
-		public CapturedMultipartContent AddString(string name, string value, string contentType = null) =>
+		public CapturedMultipartContent AddString(string name, string value, string? contentType = null) =>
 			AddInternal(name, new CapturedStringContent(value, contentType), null);
 
 		/// <summary>
@@ -74,11 +73,13 @@ namespace FluentRest.Http.Content
 		/// <param name="data">The object (typically anonymous) whose properties are parsed into control name/content pairs.</param>
 		/// <param name="contentType">The value of the Content-Type header for this part. If null, header will be excluded, which complies with the HTML 5 standard.</param>
 		/// <returns>This CapturedMultipartContent instance (supports method chaining).</returns>
-		public CapturedMultipartContent AddStringParts(object data, string contentType = null) {
-			foreach (var kv in data.ToKeyValuePairs()) {
-				if (kv.Value == null)
-					continue;
-				AddString(kv.Key, kv.Value.ToInvariantString(), contentType);
+		public CapturedMultipartContent AddStringParts(object data, string? contentType = null) 
+		{
+			foreach (var kv in data.ToKeyValuePairs().Where(o => o.Value != null)) 
+			{
+				var s = kv.Value!.ToInvariantString();
+				if(!string.IsNullOrEmpty(s))
+					AddString(kv.Key, s, contentType);
 			}
 			return this;
 		}
@@ -90,7 +91,7 @@ namespace FluentRest.Http.Content
 		/// <param name="data">The content of the part, which will be serialized to JSON.</param>
 		/// <returns>This CapturedMultipartContent instance (supports method chaining).</returns>
 		public CapturedMultipartContent AddJson(string name, object data) =>
-			AddInternal(name, new CapturedJsonContent(_settings.JsonSerializer.Serialize(data)), null);
+			AddInternal(name, new CapturedJsonContent(settings.JsonSerializer.Serialize(data)), null);
 
 		/// <summary>
 		/// Add a URL-encoded part to the multipart request.
@@ -99,7 +100,7 @@ namespace FluentRest.Http.Content
 		/// <param name="data">The content of the part, whose properties will be parsed and serialized to URL-encoded format.</param>
 		/// <returns>This CapturedMultipartContent instance (supports method chaining).</returns>
 		public CapturedMultipartContent AddUrlEncoded(string name, object data) =>
-			AddInternal(name, new CapturedUrlEncodedContent(_settings.UrlEncodedSerializer.Serialize(data)), null);
+			AddInternal(name, new CapturedUrlEncodedContent(settings.UrlEncodedSerializer.Serialize(data)), null);
 
 		/// <summary>
 		/// Adds a file to the multipart request from a stream.
@@ -110,7 +111,7 @@ namespace FluentRest.Http.Content
 		/// <param name="contentType">The content type of the file.</param>
 		/// <param name="bufferSize">The buffer size of the stream upload in bytes. Defaults to 4096.</param>
 		/// <returns>This CapturedMultipartContent instance (supports method chaining).</returns>
-		public CapturedMultipartContent AddFile(string name, Stream stream, string fileName, string contentType = null, int bufferSize = 4096) {
+		public CapturedMultipartContent AddFile(string name, Stream stream, string fileName, string? contentType = null, int bufferSize = 4096) {
 			var content = new StreamContent(stream, bufferSize);
 			if (contentType != null)
 				content.Headers.TryAddWithoutValidation("Content-Type", contentType);
@@ -126,7 +127,7 @@ namespace FluentRest.Http.Content
 		/// <param name="bufferSize">The buffer size of the stream upload in bytes. Defaults to 4096.</param>
 		/// <param name="fileName">The filename, added to the Content-Disposition header of the part. Defaults to local file name.</param>
 		/// <returns>This CapturedMultipartContent instance (supports method chaining).</returns>
-		public CapturedMultipartContent AddFile(string name, string path, string contentType = null, int bufferSize = 4096, string fileName = null) {
+		public CapturedMultipartContent AddFile(string name, string path, string? contentType = null, int bufferSize = 4096, string? fileName = null) {
 			fileName = fileName ?? FileUtils.GetFileName(path);
 			var content = new FileContent(path, bufferSize);
 			if (contentType != null)
@@ -134,7 +135,7 @@ namespace FluentRest.Http.Content
 			return AddInternal(name, content, fileName);
 		}
 
-		private CapturedMultipartContent AddInternal(string name, HttpContent content, string fileName) {
+		private CapturedMultipartContent AddInternal(string name, HttpContent content, string? fileName) {
 			if (string.IsNullOrWhiteSpace(name))
 				throw new ArgumentException("name must not be empty", nameof(name));
 
@@ -145,7 +146,7 @@ namespace FluentRest.Http.Content
 			};
 			// The base class's collection of parts is cleared on Dispose, which isn't exactly in the spirit of "Captured",
 			// which is why we need to add it to this other collection. (#580)
-			_capturedParts.Add(content);
+			capturedParts.Add(content);
 			base.Add(content);
 			return this;
 		}

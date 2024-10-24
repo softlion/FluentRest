@@ -5,7 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
-using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentRest.Http;
@@ -302,7 +301,7 @@ namespace FluentRest.Test.Http
 			// FluentRest was auto-creating an empty HttpContent object in order to forward content-level headers,
 			// and on .NET Framework a GET with a non-null HttpContent throws an exceptions (#583)
 			var calls = new List<FluentRestDetail>();
-			var resp = await "http://httpbingo.org/redirect-to?url=http%3A%2F%2Fexample.com%2F".ConfigureRequest(c => {
+			var resp = await "http://httpbin.org/redirect-to?url=http%3A%2F%2Fexample.com%2F".ConfigureRequest(c => {
 				c.Redirects.ForwardHeaders = true;
 				c.BeforeCall = call => calls.Add(call);
 			}).PostUrlEncodedAsync("test=test");
@@ -373,10 +372,9 @@ namespace FluentRest.Test.Http
 
 		[TestMethod]
 		public async Task can_receive_cookie_from_redirect_response_and_add_it_to_jar() {
-			// use httpbingo instead of httpbin because of redirect issue https://github.com/postmanlabs/httpbin/issues/617
-			JsonElement resp = await "https://httpbingo.org/redirect-to".SetQueryParam("url", "/cookies/set?x=foo").WithCookies(out var jar).GetJsonAsync<JsonElement>();
+			var resp = await "https://httpbin.org/redirect-to".SetQueryParam("url", "https://httpbin.org/cookies/set?x=foo").WithCookies(out var jar).GetJsonAsync<JsonElement>();
 
-			Assert.AreEqual("foo", resp.GetProperty("x").GetString());
+			Assert.AreEqual("foo", resp.GetProperty("cookies").GetProperty("x").GetString());
 			Assert.AreEqual(1, jar.Count);
 		}
 		#endregion

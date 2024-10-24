@@ -7,13 +7,13 @@ namespace FluentRest.Http
 	/// </summary>
 	public class CookieSession : IDisposable
 	{
-		private readonly string _baseUrl;
+		private readonly string? _baseUrl;
 		private readonly IFluentRestClient _client;
 
 		/// <summary>
 		/// Creates a new CookieSession where all requests are made off the same base URL.
 		/// </summary>
-		public CookieSession(string baseUrl = null) {
+		public CookieSession(string? baseUrl = null) {
 			_baseUrl = baseUrl;
 		}
 
@@ -27,7 +27,7 @@ namespace FluentRest.Http
 		/// <summary>
 		/// The CookieJar used by all requests sent with this CookieSession.
 		/// </summary>
-		public CookieJar Cookies { get; } = new CookieJar();
+		public CookieJar Cookies { get; } = new ();
 
 		/// <summary>
 		/// Creates a new IFluentRestRequest with this session's CookieJar that can be further built and sent fluently.

@@ -11,18 +11,25 @@ namespace FluentRest.Http
     /// </summary>
     public class FluentRestClient : IFluentRestClient
     {
-        private ClientFluentRestHttpSettings _settings;
+        private ClientFluentRestHttpSettings? _settings;
         private Lazy<HttpClient> _httpClient;
         private Lazy<HttpMessageHandler> _httpMessageHandler;
 
         // if an existing HttpClient is provided on construction, skip the lazy logic and just use that.
         private readonly HttpClient? _injectedClient;
 
+        private DateTime? _clientCreatedAt;
+        private HttpClient _zombieClient;
+        private readonly object _connectionLeaseLock = new ();
+
+
+        public string? BaseUrl { get; set; }
+
         /// <summary>
         /// Initializes a new instance of the <see cref="FluentRestClient"/> class.
         /// </summary>
         /// <param name="baseUrl">The base URL associated with this client.</param>
-        public FluentRestClient(string baseUrl = null) {
+        public FluentRestClient(string? baseUrl = null) {
             _httpClient = new Lazy<HttpClient>(CreateHttpClient);
             _httpMessageHandler = new Lazy<HttpMessageHandler>(() => Settings.HttpClientFactory.CreateMessageHandler());
             BaseUrl = baseUrl;
@@ -40,26 +47,19 @@ namespace FluentRest.Http
             BaseUrl = httpClient.BaseAddress?.ToString();
         }
 
-        /// <inheritdoc />
-        public string BaseUrl { get; set; }
 
         /// <inheritdoc />
         public ClientFluentRestHttpSettings Settings {
-            get => _settings ?? (_settings = new ClientFluentRestHttpSettings());
+            get => _settings ??= new ClientFluentRestHttpSettings();
             set => _settings = value;
         }
 
-        /// <inheritdoc />
         public INameValueList<string> Headers { get; } = new NameValueList<string>(false); // header names are case-insensitive https://stackoverflow.com/a/5259004/62600
 
-        /// <inheritdoc />
         public HttpClient HttpClient => HttpTest.Current?.HttpClient ?? _injectedClient ?? GetHttpClient();
 
-        private DateTime? _clientCreatedAt;
-        private HttpClient _zombieClient;
-        private readonly object _connectionLeaseLock = new ();
-
-        private HttpClient GetHttpClient() {
+        private HttpClient GetHttpClient() 
+        {
             if (ConnectionLeaseExpired()) {
                 lock (_connectionLeaseLock) {
                     if (ConnectionLeaseExpired()) {
@@ -77,13 +77,15 @@ namespace FluentRest.Http
             return _httpClient.Value;
         }
 
-        private HttpClient CreateHttpClient() {
+        private HttpClient CreateHttpClient() 
+        {
             var cli = Settings.HttpClientFactory.CreateHttpClient(HttpMessageHandler);
             _clientCreatedAt = DateTime.UtcNow;
             return cli;
         }
 
-        private bool ConnectionLeaseExpired() {
+        private bool ConnectionLeaseExpired() 
+        {
             // for thread safety, capture these to temp variables
             var createdAt = _clientCreatedAt;
             var timeout = Settings.ConnectionLeaseTimeout;
