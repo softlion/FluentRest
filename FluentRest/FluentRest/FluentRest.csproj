@@ -57,11 +57,11 @@
         <NeutralLanguage>en</NeutralLanguage>
         <Copyright>© 2022-2025 Softlion</Copyright>
         <RepositoryUrl>https://github.com/softlion/FluentRest</RepositoryUrl>
-    <RepositoryType>git</RepositoryType>
-    <PackageIcon>icon.png</PackageIcon>
+        <RepositoryType>git</RepositoryType>
+        <PackageIcon>icon.png</PackageIcon>
         <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
         <PackageProjectUrl>https://github.com/softlion/FluentRest</PackageProjectUrl>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
         <PackageReleaseNotes>
             1.1.0: .NET 9 support and package updates
             1.0.8: NuGet dependency updates
