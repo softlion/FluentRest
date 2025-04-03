@@ -21,6 +21,7 @@ namespace FluentRest.Test.Http
 	[TestClass]
 	public class RealHttpTests
 	{
+		[TestMethod]
 		[DataRow("gzip", "gzipped")]
 		[DataRow("deflate", "deflated"), Ignore("#474")]
 		public async Task decompresses_automatically(string encoding, string jsonKey) {
@@ -32,6 +33,7 @@ namespace FluentRest.Test.Http
 			Assert.AreEqual(true, result[jsonKey]);
 		}
 
+		[TestMethod]
 		[DataRow("https://httpbin.org/image/jpeg", null, "my-image.jpg", "my-image.jpg")]
 		// should use last path segment url-decoded (foo?bar:ding), then replace illegal path characters with _
 		[DataRow("https://httpbin.org/anything/foo%3Fbar%3Ading", null, null, "foo_bar_ding")]

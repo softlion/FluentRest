@@ -49,6 +49,7 @@ namespace FluentRest.Test.Http
 			HttpTest.ShouldHaveCalled("http://start.com/redir3#bar");
 		}
 
+		[TestMethod]
 		[DataRow(false)]
 		[DataRow(true)]
 		public async Task can_enable_auto_redirect_per_request(bool enabled) {
@@ -105,6 +106,7 @@ namespace FluentRest.Test.Http
 				.WithoutHeader("Transfer-Encoding"); // special rule: never forward this if verb is changed to GET, which is is on a 302 POST
 		}
 
+		[TestMethod]
 		[DataRow(301, true)]
 		[DataRow(302, true)]
 		[DataRow(303, true)]
@@ -133,6 +135,7 @@ namespace FluentRest.Test.Http
 			StringAssert.Contains(ex.Result.Message, "Circular redirect");
 		}
 
+		[TestMethod]
 		[DataRow(null)] // test the default (10)
 		[DataRow(5)]
 		public async Task can_limit_redirects(int? max) {
@@ -210,6 +213,7 @@ namespace FluentRest.Test.Http
 			HttpTest.ShouldNotHaveCalled("http://start.com/next");
 		}
 
+		[TestMethod]
 		[DataRow(false)]
 		[DataRow(true)]
 		public async Task can_allow_redirect_secure_to_insecure(bool allow) {
@@ -229,6 +233,7 @@ namespace FluentRest.Test.Http
 				HttpTest.ShouldNotHaveCalled("http://insecure.com/next");
 		}
 
+		[TestMethod]
 		[DataRow(false)]
 		[DataRow(true)]
 		public async Task can_allow_forward_auth_header(bool allow) {

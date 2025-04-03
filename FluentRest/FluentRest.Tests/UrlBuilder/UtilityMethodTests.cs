@@ -13,6 +13,7 @@ namespace FluentRest.Test.UrlBuilder
 			Assert.AreEqual("http://www.foo.com/too/many/slashes/too/few/one/two/", url);
 		}
 
+		[TestMethod]
 		[DataRow("segment?", "foo=bar", "x=1&y=2&")]
 		[DataRow("segment", "?foo=bar&x=1", "y=2&")]
 		[DataRow("segment", "?", "foo=bar&x=1&y=2&")]
@@ -63,6 +64,7 @@ namespace FluentRest.Test.UrlBuilder
 			Assert.AreEqual(encoded, decoded);
 		}
 
+		[TestMethod]
 		[DataRow("http://www.mysite.com/more", true)]
 		[DataRow("http://www.mysite.com/more?x=1&y=2", true)]
 		[DataRow("http://www.mysite.com/more?x=1&y=2#frag", true)]

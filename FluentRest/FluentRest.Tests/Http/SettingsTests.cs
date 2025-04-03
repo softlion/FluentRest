@@ -65,6 +65,7 @@ namespace FluentRest.Test.Http
 			}
 		}
 
+		[TestMethod]
 		[DataRow(true)]
 		[DataRow(false)]
 		public async Task can_set_error_callback(bool markExceptionHandled) {

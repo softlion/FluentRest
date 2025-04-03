@@ -18,7 +18,16 @@ namespace SourceGenerator.Tests
         public async Task TestGeneration()
         {
             var code = "initial code";
-            var generated = "expected generated code";
+            
+            var urls = @"
+// This file was auto-generated. Do not edit directly.
+...
+";
+
+            var http = @"
+// This file was auto-generated. Do not edit directly.
+...
+";
 
             await new VerifyCS.Test
             {
@@ -27,7 +36,8 @@ namespace SourceGenerator.Tests
                     Sources = { code },
                     GeneratedSources =
                     {
-                        (typeof(FluentRestSourceGenerator), "GeneratedFileName", SourceText.From(generated, Encoding.UTF8, SourceHashAlgorithm.Sha256)),
+                        (typeof(FluentRestSourceGenerator), "GeneratedExtensions.Urls.g.cs", SourceText.From(urls, Encoding.UTF8, SourceHashAlgorithm.Sha256)),
+                        (typeof(FluentRestSourceGenerator), "GeneratedExtensions.Http.g.cs", SourceText.From(http, Encoding.UTF8, SourceHashAlgorithm.Sha256)),
                     },
                 },
             }.RunAsync();

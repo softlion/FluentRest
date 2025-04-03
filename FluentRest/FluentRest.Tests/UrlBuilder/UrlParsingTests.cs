@@ -43,6 +43,7 @@ namespace FluentRest.Test.UrlBuilder
 			}
 		}
 
+		[TestMethod]
 		[DataRow("http://www.trailing-slash.com/", "/")]
 		[DataRow("http://www.trailing-slash.com/a/b/", "/a/b/")]
 		[DataRow("http://www.trailing-slash.com/a/b/?x=y", "/a/b/")]
@@ -82,6 +83,7 @@ namespace FluentRest.Test.UrlBuilder
 			Assert.AreEqual("bar", q.FirstOrDefault(""));
 		}
 
+		[TestMethod]
 		[DataRow("http://www.mysite.com/more?x=1&y=2", true)]
 		[DataRow("//how/about/this#hi", false)]
 		[DataRow("/how/about/this#hi", false)]

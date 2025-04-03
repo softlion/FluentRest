@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-	<TargetFrameworks>netstandard2.1;net8.0</TargetFrameworks>
+	<TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
 	<LangVersion>latest</LangVersion>
 	<RootNamespace>FluentRest</RootNamespace>
@@ -12,10 +12,10 @@
 		<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive; compile</IncludeAssets>
     </PackageReference>
         
-    <PackageReference Include="Fody" Version="6.8.2" PrivateAssets="all">
+    <PackageReference Include="Fody" Version="6.9.2" PrivateAssets="all">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="System.Net.Http.Json" Version="8.0.1" />
+<!--    <PackageReference Include="System.Net.Http.Json" Version="8.0.1" />-->
   </ItemGroup>
 
     <ItemGroup>
@@ -50,13 +50,14 @@
         <Authors>Softlion</Authors>
         <Owners>Softlion</Owners>
         <NeutralLanguage>en</NeutralLanguage>
-        <Copyright>© 2022 Softlion</Copyright>
+        <Copyright>© 2022-2025 Softlion</Copyright>
         <RepositoryUrl>https://github.com/softlion/FluentRest</RepositoryUrl>
         <UseFullSemVerForNuGet>false</UseFullSemVerForNuGet>
         <!--    <PackageLicenseFile>LICENSE.md</PackageLicenseFile>-->
         <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
         <PackageProjectUrl>https://github.com/softlion/FluentRest</PackageProjectUrl>
         <PackageReleaseNotes>
+            1.1.0: net9
             1.0.8: nuget updates
             1.0.7: nuget updates
             1.0.6: net8

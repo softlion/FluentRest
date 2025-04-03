@@ -108,6 +108,7 @@ namespace FluentRest.Test.UrlBuilder
 			CollectionAssert.AreEqual(new[] { "hello", "how/are/you" }, result);
 		}
 
+		[TestMethod]
 		[DataRow("   \"\thi there \"  \t\t ", "\thi there ")]
 		[DataRow("   '  hi there  '   ", "  hi there  ")]
 		[DataRow("  hi there  ", "  hi there  ")]

@@ -62,6 +62,7 @@ namespace FluentRest.Test.UrlBuilder
 		}
 
 		// #641 (oddly, passing the params object ("" or null) via another TestCase arg didn't repro the issue in the null case)
+		[TestMethod]
 		[DataRow("http://www.mysite.com/more")]
 		[DataRow("http://www.mysite.com/more?x=1")]
 		public void ignores_null_or_empty_query_params(string original) {
@@ -179,6 +180,7 @@ namespace FluentRest.Test.UrlBuilder
 			Assert.AreEqual("http://www.mysite.com/more?y=2", url.ToString());
 		}
 
+		[TestMethod]
 		[DataRow("http://www.mysite.com/?x=1&y=2&z=3#foo", "http://www.mysite.com/#foo")]
 		[DataRow("http://www.mysite.com/more?x=1&y=2&z=3#foo", "http://www.mysite.com/more#foo")]
 		[DataRow("relative/path?foo", "relative/path")]
@@ -193,6 +195,7 @@ namespace FluentRest.Test.UrlBuilder
 			Assert.AreEqual("http://www.mysite.com/more", url.ToString());
 		}
 
+		[TestMethod]
 		[DataRow(NullValueHandling.Ignore, "http://www.mysite.com?y=2&x=1&z=foo")]
 		[DataRow(NullValueHandling.NameOnly, "http://www.mysite.com?y&x=1&z=foo")]
 		[DataRow(NullValueHandling.Remove, "http://www.mysite.com?x=1&z=foo")]
@@ -202,6 +205,7 @@ namespace FluentRest.Test.UrlBuilder
 			Assert.AreEqual(expected, r);
 		}
 
+		[TestMethod]
 		[DataRow("http://www.mysite.com", "endpoint", "http://www.mysite.com/endpoint")]
 		[DataRow("path1", "path2", "path1/path2")] // #568
 		[DataRow("/path1/path2", "path3", "/path1/path2/path3")]
@@ -230,6 +234,7 @@ namespace FluentRest.Test.UrlBuilder
 			Assert.AreEqual("http://www.mysite.com/category/endpoint", url.ToString());
 		}
 
+		[TestMethod]
 		[DataRow("http://www.site.com/path1/path2/?x=y", "http://www.site.com/path1/?x=y")]
 		[DataRow("http://www.site.com/path1/path2?x=y", "http://www.site.com/path1?x=y")]
 		[DataRow("http://www.site.com/path1/", "http://www.site.com/")]
@@ -243,6 +248,7 @@ namespace FluentRest.Test.UrlBuilder
 			Assert.AreEqual(expected, url.ToString());
 		}
 
+		[TestMethod]
 		[DataRow("http://www.site.com/path1/path2/?x=y", "http://www.site.com?x=y")]
 		[DataRow("http://www.site.com/path1/path2?x=y", "http://www.site.com?x=y")]
 		[DataRow("http://www.site.com/", "http://www.site.com")]
@@ -255,14 +261,12 @@ namespace FluentRest.Test.UrlBuilder
 			Assert.AreEqual(expected, url.ToString());
 		}
 
-#if !NETCOREAPP1_1
 		[TestMethod]
 		public void url_ToString_uses_invariant_culture() {
 			Thread.CurrentThread.CurrentCulture = CultureInfo.GetCultureInfo("es-ES");
 			var url = "http://www.mysite.com".SetQueryParam("x", 1.1);
 			Assert.AreEqual("http://www.mysite.com?x=1.1", url.ToString());
 		}
-#endif
 
 		[TestMethod]
 		public void can_reset_to_root() {

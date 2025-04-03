@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
@@ -116,6 +117,7 @@ namespace FluentRest.Test.Http
 			}
 		}
 
+		[TestMethod]
 		[DataRow(false)]
 		[DataRow(true)]
 		public async Task can_get_error_json_typed(bool useShortcut) {
@@ -256,6 +258,64 @@ namespace FluentRest.Test.Http
 			Assert.IsNull(logMe.Name);
 		}
 
+		[TestMethod]
+		public async Task CanGetJsonListFromResponse()
+		{
+			var testData = new List<TestData>
+			{
+				new() { id = 1, name = "Alice" },
+				new() { id = 2, name = "Bob" },
+				new() { id = 3, name = "Charlie" }
+			};
+			
+			HttpTest.RespondWithJson(testData);
+
+			var response = await "http://api.com/users".GetAsync();
+			var users = await response.GetJsonAsync<List<TestData>>();
+			
+			Assert.IsNotNull(users);
+			Assert.AreEqual(3, users.Count);
+			Assert.AreEqual(1, users[0].id);
+			Assert.AreEqual("Alice", users[0].name);
+			Assert.AreEqual(2, users[1].id);
+			Assert.AreEqual("Bob", users[1].name);
+			Assert.AreEqual(3, users[2].id);
+			Assert.AreEqual("Charlie", users[2].name);
+			
+			response = await "http://api.com/users".GetAsync();
+			var users2 = await response.GetJsonAsync<List<TestData2>>();
+			Assert.IsNotNull(users2);
+			Assert.AreEqual(3, users2.Count);
+			Assert.AreEqual(1, users2[0].id);
+			Assert.IsNull(users2[0].somethingElse);
+			Assert.AreEqual(2, users2[1].id);
+			Assert.IsNull(users2[1].somethingElse);
+			Assert.AreEqual(3, users2[2].id);
+			Assert.IsNull(users2[2].somethingElse);
+			
+			response = await "http://api.com/users".GetAsync();
+			var users3 = await response.GetJsonAsync<List<TestData3>>();
+			Assert.IsNotNull(users3);
+			Assert.AreEqual(3, users3.Count);
+			Assert.AreEqual(1, users3[0].Id);
+			Assert.AreEqual("Alice", users3[0].Name);
+			Assert.AreEqual(2, users3[1].Id);
+			Assert.AreEqual("Bob", users3[1].Name);
+			Assert.AreEqual(3, users3[2].Id);
+			Assert.AreEqual("Charlie", users3[2].Name);
+			
+			response = await "http://api.com/users".GetAsync();
+			var users4 = await response.GetJsonAsync<List<TestData4>>();
+			Assert.IsNotNull(users4);
+			Assert.AreEqual(3, users4.Count);
+			Assert.AreEqual(1, users4[0].Id);
+			Assert.AreEqual("Alice", users4[0].OtherName);
+			Assert.AreEqual(2, users4[1].Id);
+			Assert.AreEqual("Bob", users4[1].OtherName);
+			Assert.AreEqual(3, users4[2].Id);
+			Assert.AreEqual("Charlie", users4[2].OtherName);
+		}
+
 		private class TestData
 		{
 			public int id { get; set; }
@@ -272,6 +332,13 @@ namespace FluentRest.Test.Http
 		{
 			public int Id { get; set; }
 			public string Name { get; set; }
+		}
+		
+		private class TestData4
+		{
+			public int Id { get; set; }
+			[JsonPropertyName("name")]
+			public string OtherName { get; set; }
 		}
 
 
